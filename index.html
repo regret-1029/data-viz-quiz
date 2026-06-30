@@ -182,7 +182,8 @@ body {
       <button class="btn btn-outline btn-sm" onclick="toggleNav()">题号</button>
       <button class="btn btn-outline btn-sm" onclick="showCodeRef()">代码</button>
       <button class="btn btn-outline btn-sm" onclick="showWrongList()">错题</button>
-      <button class="btn btn-outline btn-sm" onclick="resetAll()">重刷</button>
+      <button class="btn btn-outline btn-sm" onclick="showHistory()">历史</button>
+      <button class="btn btn-outline btn-sm" onclick="submitAll()">交卷</button>
       <button class="btn btn-outline btn-sm" onclick="prevQuestion()">←</button>
       <button class="btn btn-outline btn-sm" onclick="nextQuestion()">→</button>
     </div>
@@ -240,8 +241,9 @@ body {
       <div class="stats-grid" id="statsGrid"></div>
       <div class="stats-actions">
         <button class="btn btn-primary btn-sm" onclick="showWrongList()">查看错题</button>
+        <button class="btn btn-outline btn-sm" onclick="showHistory()">历史记录</button>
         <button class="btn btn-outline btn-sm" onclick="showCodeRef()">代码参考</button>
-        <button class="btn btn-danger btn-sm" onclick="resetAll()">重新刷题</button>
+        <button class="btn btn-danger btn-sm" onclick="saveAndReset()">重新刷题</button>
       </div>
     </div>
   </div>
@@ -257,6 +259,20 @@ body {
         </div>
       </div>
       <div id="wrongListContent"></div>
+    </div>
+  </div>
+
+  <!-- History Page -->
+  <div id="historyPage" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <h3 style="font-size:16px;">历史记录</h3>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="render()">答题</button>
+          <button class="btn btn-outline btn-sm" onclick="clearHistory()">清空历史</button>
+        </div>
+      </div>
+      <div id="historyContent"></div>
     </div>
   </div>
 </div>
@@ -428,6 +444,7 @@ function render() {
   document.getElementById('statsPage').classList.add('hidden');
   document.getElementById('wrongPage').classList.add('hidden');
   document.getElementById('codeRefPage').classList.add('hidden');
+  document.getElementById('historyPage').classList.add('hidden');
 
   if (navOpen) renderNavGrid();
 }
@@ -509,6 +526,7 @@ function showCodeRef() {
   document.getElementById('statsPage').classList.add('hidden');
   document.getElementById('wrongPage').classList.add('hidden');
   document.getElementById('codeRefPage').classList.remove('hidden');
+  document.getElementById('historyPage').classList.add('hidden');
 
   let html = '';
   codeRefs.forEach((ref, i) => {
@@ -541,6 +559,7 @@ function showStats() {
   document.getElementById('statsPage').classList.remove('hidden');
   document.getElementById('wrongPage').classList.add('hidden');
   document.getElementById('codeRefPage').classList.add('hidden');
+  document.getElementById('historyPage').classList.add('hidden');
 
   const ring = document.getElementById('rateRing');
   const rateColor = rate >= 80 ? '#43a047' : rate >= 60 ? '#fb8c00' : '#e53935';
@@ -569,6 +588,7 @@ function showWrongList() {
   document.getElementById('statsPage').classList.add('hidden');
   document.getElementById('wrongPage').classList.remove('hidden');
   document.getElementById('codeRefPage').classList.add('hidden');
+  document.getElementById('historyPage').classList.add('hidden');
 
   const badgeMap = {
     '单选题': '<span class="badge badge-single">【单选题】</span>',
@@ -595,7 +615,81 @@ function showWrongList() {
 
 // ========== Reset ==========
 function resetAll() {
-  if (!confirm('确定要重置所有记录，从头开始答题吗？')) return;
+  userAnswers = new Array(TOTAL).fill(null);
+  submitted = new Array(TOTAL).fill(false);
+  results = new Array(TOTAL).fill(null);
+  currentQ = 0;
+  navOpen = false;
+  document.getElementById('navPanel').classList.remove('open');
+  render();
+}
+
+// ========== Submit All ==========
+function submitAll() {
+  saveHistory();
+  showStats();
+}
+
+// ========== History (localStorage) ==========
+function getHistory() {
+  try { return JSON.parse(localStorage.getItem('quizHistory')) || []; } catch(e) { return []; }
+}
+
+function saveHistory() {
+  const answered = results.filter(r => r !== null).length;
+  if (answered === 0) return;
+  const correctCount = results.filter(r => r && r.correct).length;
+  const wrongCount = results.filter(r => r && !r.correct).length;
+  const rate = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
+  const history = getHistory();
+  history.unshift({
+    time: new Date().toLocaleString('zh-CN'),
+    answered: answered,
+    correct: correctCount,
+    wrong: wrongCount,
+    rate: rate,
+    total: TOTAL
+  });
+  if (history.length > 50) history.length = 50; // keep max 50 records
+  try { localStorage.setItem('quizHistory', JSON.stringify(history)); } catch(e) {}
+}
+
+function showHistory() {
+  document.getElementById('questionArea').classList.add('hidden');
+  document.getElementById('statsPage').classList.add('hidden');
+  document.getElementById('wrongPage').classList.add('hidden');
+  document.getElementById('codeRefPage').classList.add('hidden');
+  document.getElementById('historyPage').classList.remove('hidden');
+
+  const history = getHistory();
+  if (history.length === 0) {
+    document.getElementById('historyContent').innerHTML =
+      '<div style="text-align:center;padding:40px 0;color:#999;">暂无历史记录</div>';
+    return;
+  }
+
+  let html = '';
+  history.forEach((h, i) => {
+    const color = h.rate >= 80 ? '#43a047' : h.rate >= 60 ? '#fb8c00' : '#e53935';
+    html += `<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;flex-wrap:wrap;gap:6px;">
+      <span style="font-size:13px;color:#888;">${h.time}</span>
+      <span style="font-size:14px;">${h.answered}/${h.total} 题</span>
+      <span style="font-size:14px;font-weight:600;color:${color};">${h.correct} 对 / ${h.wrong} 错</span>
+      <span style="font-size:18px;font-weight:700;color:${color};">${h.rate}%</span>
+    </div>`;
+  });
+  document.getElementById('historyContent').innerHTML = html;
+}
+
+function clearHistory() {
+  if (!confirm('确定清空所有历史记录？')) return;
+  try { localStorage.removeItem('quizHistory'); } catch(e) {}
+  showHistory();
+}
+
+function saveAndReset() {
+  saveHistory();
+  if (!confirm('当前成绩已保存到历史记录，确定重新刷题？')) return;
   userAnswers = new Array(TOTAL).fill(null);
   submitted = new Array(TOTAL).fill(false);
   results = new Array(TOTAL).fill(null);
