@@ -1,0 +1,601 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>数据可视化 期末刷题</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Microsoft YaHei", sans-serif;
+  background: #f0f2f5; color: #333; line-height: 1.8; min-height: 100vh;
+}
+.container { max-width: 840px; margin: 0 auto; padding: 16px; }
+
+/* ===== Header ===== */
+.header {
+  position: sticky; top: 0; z-index: 100; background: #fff;
+  border-bottom: 1px solid #e8e8e8; padding: 10px 16px; margin-bottom: 14px;
+  box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 6px;
+}
+.header .progress { font-size: 14px; font-weight: 600; color: #1a73e8; }
+.header .nav-btns { display: flex; gap: 6px; flex-wrap: wrap; }
+
+/* ===== Nav Panel ===== */
+.nav-panel {
+  background: #fff; border-radius: 12px; padding: 14px 18px; margin-bottom: 14px;
+  box-shadow: 0 2px 12px rgba(0,0,0,0.06); display: none;
+}
+.nav-panel.open { display: block; }
+.nav-grid {
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(42px, 1fr));
+  gap: 5px; margin-top: 8px;
+}
+.nav-num {
+  display: flex; align-items: center; justify-content: center;
+  padding: 5px 0; border-radius: 6px; font-size: 13px; font-weight: 600;
+  cursor: pointer; border: 2px solid #e0e0e0; background: #fff; transition: all 0.15s;
+}
+.nav-num:hover { border-color: #90caf9; background: #e3f2fd; transform: scale(1.05); }
+.nav-num.active { border-color: #1a73e8; background: #1a73e8; color: #fff; }
+.nav-num.done { border-color: #43a047; background: #e8f5e9; }
+.nav-num.wrong { border-color: #e53935; background: #ffebee; color: #c62828; }
+.nav-num.unsub { border-color: #fff3e0; background: #fff3e0; color: #e65100; }
+
+/* ===== Card ===== */
+.card { background: #fff; border-radius: 12px; padding: 20px 24px; box-shadow: 0 2px 12px rgba(0,0,0,0.06); margin-bottom: 14px; }
+
+/* ===== Badge ===== */
+.badge { display: inline-block; padding: 2px 10px; border-radius: 4px; font-size: 12px; font-weight: 600; margin-bottom: 10px; }
+.badge-single { background: #e3f2fd; color: #1565c0; }
+.badge-judge { background: #fff3e0; color: #e65100; }
+.badge-fill { background: #e8f5e9; color: #2e7d32; }
+.badge-material { background: #f3e5f5; color: #6a1b9a; }
+
+/* ===== Material Context ===== */
+.material-context {
+  background: #fff8e1; border-left: 4px solid #ffa000; border-radius: 6px;
+  padding: 12px 16px; margin-bottom: 14px; font-size: 14px; line-height: 1.7;
+}
+.material-context strong { color: #e65100; }
+
+/* ===== Question ===== */
+.question-text { font-size: 16px; font-weight: 500; margin-bottom: 14px; line-height: 1.8; }
+
+/* ===== Options ===== */
+.options { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px; }
+.option-item {
+  display: flex; align-items: center; gap: 10px; padding: 9px 14px;
+  border: 2px solid #e0e0e0; border-radius: 8px; cursor: pointer;
+  transition: all 0.15s; font-size: 15px;
+}
+.option-item:hover { border-color: #90caf9; background: #f5f9ff; }
+.option-item input[type="radio"] { accent-color: #1a73e8; transform: scale(1.1); }
+.option-item.correct { border-color: #43a047; background: #e8f5e9; }
+.option-item.wrong { border-color: #e53935; background: #ffebee; }
+.option-item.locked { pointer-events: none; opacity: 0.85; }
+
+/* ===== Fill input ===== */
+.fill-input {
+  width: 100%; padding: 9px 14px; font-size: 15px; border: 2px solid #e0e0e0;
+  border-radius: 8px; outline: none; transition: border-color 0.15s; margin-bottom: 10px;
+}
+.fill-input:focus { border-color: #1a73e8; }
+.fill-input.locked { background: #f5f5f5; pointer-events: none; }
+
+/* ===== Buttons ===== */
+.btn {
+  display: inline-flex; align-items: center; justify-content: center;
+  padding: 8px 18px; border: none; border-radius: 8px; font-size: 14px;
+  font-weight: 600; cursor: pointer; transition: all 0.15s;
+}
+.btn:active { transform: scale(0.97); }
+.btn-primary { background: #1a73e8; color: #fff; }
+.btn-primary:hover { background: #1557b0; }
+.btn-primary:disabled { background: #93b8f0; cursor: not-allowed; transform: none; }
+.btn-success { background: #43a047; color: #fff; }
+.btn-success:hover { background: #2e7d32; }
+.btn-success:disabled { background: #a5d6a7; cursor: not-allowed; transform: none; }
+.btn-outline { background: transparent; color: #555; border: 2px solid #ddd; }
+.btn-outline:hover { border-color: #999; background: #f5f5f5; }
+.btn-outline:disabled { opacity: 0.4; cursor: not-allowed; transform: none; }
+.btn-danger { background: #e53935; color: #fff; }
+.btn-danger:hover { background: #c62828; }
+.btn-sm { padding: 4px 12px; font-size: 12px; }
+
+.action-btns { display: flex; gap: 8px; flex-wrap: wrap; margin-top: 6px; }
+
+/* ===== Result ===== */
+.result-box { margin-top: 10px; padding: 12px 16px; border-radius: 8px; font-size: 14px; line-height: 1.7; }
+.result-correct { background: #e8f5e9; border-left: 4px solid #43a047; }
+.result-wrong { background: #ffebee; border-left: 4px solid #e53935; }
+.result-box .answer-line { margin-top: 4px; }
+.result-box .explain-line { margin-top: 4px; color: #555; }
+
+/* ===== Stats ===== */
+.stats-card { text-align: center; padding: 28px 20px; }
+.stats-title { font-size: 20px; font-weight: 700; margin-bottom: 18px; }
+.stats-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; max-width: 340px; margin: 0 auto 18px; }
+.stat-item { background: #f5f7fa; border-radius: 10px; padding: 12px; }
+.stat-value { font-size: 24px; font-weight: 700; color: #1a73e8; }
+.stat-label { font-size: 12px; color: #888; margin-top: 3px; }
+.stat-item.green .stat-value { color: #43a047; }
+.stat-item.red .stat-value { color: #e53935; }
+.stat-item.orange .stat-value { color: #fb8c00; }
+.rate-ring { width: 90px; height: 90px; border-radius: 50%; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; font-weight: 700; color: #fff; margin-bottom: 10px; }
+.stats-actions { display: flex; gap: 8px; justify-content: center; flex-wrap: wrap; }
+
+/* ===== Wrong list ===== */
+.wrong-item { padding: 12px 0; border-bottom: 1px solid #eee; text-align: left; }
+.wrong-item:last-child { border-bottom: none; }
+.wrong-q { font-weight: 500; margin-bottom: 4px; font-size: 15px; }
+.wrong-detail { font-size: 14px; color: #666; line-height: 1.6; }
+.wrong-detail .label { color: #888; }
+.wrong-detail .your-ans { color: #e53935; font-weight: 600; }
+.wrong-detail .correct-ans { color: #43a047; font-weight: 600; }
+
+/* ===== Code Reference ===== */
+.code-ref { margin-bottom: 14px; }
+.code-ref-title { font-size: 15px; font-weight: 600; margin-bottom: 6px; }
+.code-block {
+  background: #1e1e1e; color: #d4d4d4; border-radius: 8px; padding: 14px 16px;
+  font-family: "Cascadia Code", "Fira Code", "Consolas", monospace;
+  font-size: 13px; line-height: 1.6; overflow-x: auto; white-space: pre-wrap; word-break: break-word;
+  margin-bottom: 8px; display: none;
+}
+.code-block.open { display: block; }
+.code-steps { font-size: 13px; color: #555; background: #f5f7fa; padding: 8px 14px; border-radius: 6px; margin-bottom: 8px; }
+
+/* ===== Short Answer Review ===== */
+.review-item { padding: 10px 0; border-bottom: 1px solid #eee; }
+.review-item:last-child { border-bottom: none; }
+.review-q { font-weight: 600; font-size: 15px; }
+.review-a { font-size: 14px; color: #555; margin-top: 4px; }
+
+/* ===== Utility ===== */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+
+@media (max-width: 600px) {
+  .container { padding: 10px; }
+  .card { padding: 14px 16px; }
+  .header { padding: 8px 10px; }
+  .header .progress { font-size: 12px; }
+  .question-text { font-size: 15px; }
+  .option-item { font-size: 14px; padding: 7px 10px; }
+  .nav-grid { grid-template-columns: repeat(auto-fill, minmax(36px, 1fr)); gap: 4px; }
+  .nav-num { font-size: 11px; padding: 4px 0; }
+  .stats-grid { gap: 8px; }
+  .stat-value { font-size: 20px; }
+  .btn { padding: 6px 14px; font-size: 13px; }
+  .code-block { font-size: 12px; padding: 10px 12px; }
+}
+</style>
+</head>
+<body>
+<div class="container" id="app">
+  <!-- Header -->
+  <div class="header">
+    <span class="progress" id="progressText">第 1 题 / 共 109 题</span>
+    <div class="nav-btns">
+      <button class="btn btn-outline btn-sm" onclick="toggleNav()">题号</button>
+      <button class="btn btn-outline btn-sm" onclick="showCodeRef()">代码</button>
+      <button class="btn btn-outline btn-sm" onclick="showWrongList()">错题</button>
+      <button class="btn btn-outline btn-sm" onclick="prevQuestion()">←</button>
+      <button class="btn btn-outline btn-sm" onclick="nextQuestion()">→</button>
+    </div>
+  </div>
+
+  <!-- Navigation Panel -->
+  <div class="nav-panel" id="navPanel">
+    <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:6px;margin-bottom:6px;">
+      <span style="font-size:13px;font-weight:600;color:#555;">选择题目</span>
+      <div style="display:flex;gap:8px;font-size:11px;color:#888;">
+        <span>⬜ 未答</span>
+        <span>🟧 未提交</span>
+        <span>🟢 正确</span>
+        <span>🔴 错误</span>
+      </div>
+    </div>
+    <div class="nav-grid" id="navGrid"></div>
+  </div>
+
+  <!-- Question Area -->
+  <div id="questionArea">
+    <div class="card">
+      <div id="materialContext" class="material-context hidden">
+        <strong>A集团健身房背景：</strong>标准店、高端旗舰店、24小时自助店三种业态，CDO需准备年度报告。以下为各业务场景推荐图表选择。
+      </div>
+      <div id="badgeArea"></div>
+      <div class="question-text" id="questionText"></div>
+      <div id="optionsArea"></div>
+      <div id="fillArea" class="hidden">
+        <input type="text" class="fill-input" id="fillInput" placeholder="请输入答案..." autocomplete="off">
+      </div>
+      <div class="action-btns hidden" id="actionBtns">
+        <button class="btn btn-primary hidden" id="submitBtn">提交本题</button>
+      </div>
+      <div id="resultArea" class="hidden"></div>
+    </div>
+  </div>
+
+  <!-- Code Reference Page -->
+  <div id="codeRefPage" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <h3 style="font-size:16px;">代码参考（简答题必考）</h3>
+        <button class="btn btn-outline btn-sm" onclick="render()">← 返回答题</button>
+      </div>
+      <div id="codeRefContent"></div>
+    </div>
+  </div>
+
+  <!-- Stats Page -->
+  <div id="statsPage" class="hidden">
+    <div class="card stats-card">
+      <div class="stats-title">答题结果</div>
+      <div id="rateRing" class="rate-ring" style="background:#1a73e8;"></div>
+      <div class="stats-grid" id="statsGrid"></div>
+      <div class="stats-actions">
+        <button class="btn btn-primary btn-sm" onclick="showWrongList()">查看错题</button>
+        <button class="btn btn-outline btn-sm" onclick="showCodeRef()">代码参考</button>
+        <button class="btn btn-danger btn-sm" onclick="resetAll()">重新刷题</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Wrong List Page -->
+  <div id="wrongPage" class="hidden">
+    <div class="card">
+      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;flex-wrap:wrap;gap:8px;">
+        <h3 style="font-size:16px;">错题列表</h3>
+        <div style="display:flex;gap:6px;">
+          <button class="btn btn-outline btn-sm" onclick="showStats()">成绩</button>
+          <button class="btn btn-outline btn-sm" onclick="render()">答题</button>
+        </div>
+      </div>
+      <div id="wrongListContent"></div>
+    </div>
+  </div>
+</div>
+
+<script>
+// ========== Data ==========
+const questions = [{"number": "1", "type": "单选题", "question": "数据展示的目的是什么？", "answer": "A", "explanation": "数据可视化的核心目标是将复杂数据转化为易于理解的信息。", "options": ["A.将复杂数据转化为易于理解的信息", "B.将数据存储到数据库", "C.实现数据加密", "D.增加数据量"]}, {"number": "2", "type": "单选题", "question": "在数据可视化流程中，首先进行的步骤是？", "answer": "A", "explanation": "数据可视化流程四步骤：数据采集 → 数据预处理 → 可视化映射（核心）→ 用户感知。", "options": ["A.数据采集", "B.可视化映射", "C.用户感知", "D.数据清洗"]}, {"number": "3", "type": "单选题", "question": "ECharts option中定义图表标题的属性是？", "answer": "C", "explanation": "ECharts中title属性用于定义图表标题，xAxis/yAxis定义坐标轴，legend定义图例。", "options": ["A.xAxis", "B.yAxis", "C.title", "D.legend"]}, {"number": "4", "type": "单选题", "question": "最适合展示两个变量相关性的图表？", "answer": "C", "explanation": "散点图最适合展示两个变量之间的相关关系（正相关/负相关/无相关）。", "options": ["A.柱状图", "B.折线图", "C.散点图", "D.饼图"]}, {"number": "5", "type": "单选题", "question": "色彩\"前后感\"在可视化中常用来？", "answer": "C", "explanation": "色彩的\"前后感\"指暖色有前进感、冷色有后退感，用于突出主体、弱化背景。", "options": ["A.增加数据量", "B.显示数据趋势", "C.突出主体、弱化背景", "D.展示数据分布"]}, {"number": "6", "type": "单选题", "question": "pyecharts绘制地图需导入的核心类？", "answer": "C", "explanation": "pyecharts绘制地图需导入Map类，此外还有Bar、WordCloud、Page等常用类。", "options": ["A.Bar", "B.WordCloud", "C.Map", "D.Page"]}, {"number": "7", "type": "单选题", "question": "ECharts柱状图指定横坐标数据的配置项？", "answer": "C", "explanation": "ECharts柱状图中xAxis指定横坐标（类别）数据，yAxis指定纵坐标（数值）数据。", "options": ["A.yAxis", "B.series", "C.xAxis", "D.tooltip"]}, {"number": "8", "type": "单选题", "question": "ECharts绘制散点图的type参数？", "answer": "A", "explanation": "ECharts中散点图type参数为\"scatter\"，柱状图为\"bar\"，折线图为\"line\"，饼图为\"pie\"。", "options": ["A.scatter", "B.bar", "C.line", "D.pie"]}, {"number": "9", "type": "单选题", "question": "ECharts显示图形的正确方法？", "answer": "A", "explanation": "ECharts显示图形需调用setOption(option)方法，将配置项应用到实例。", "options": ["A.setOption(option)", "B.display(option)", "C.show(option)", "D.print(option)"]}, {"number": "10", "type": "单选题", "question": "mydict={red:2000,blue:1000,yellow:500}创建Series的索引？", "answer": "B", "explanation": "由字典创建Series时，字典的键（key）自动成为索引。", "options": ["A.0,1,2", "B.red,blue,yellow", "C.2000,1000,500", "D.None"]}, {"number": "11", "type": "单选题", "question": "体现色彩\"轻重感\"的是？", "answer": "C", "explanation": "色彩的\"轻重感\"由明度决定：浅色（高明度）显轻盈，深色（低明度）显沉重。", "options": ["A.红色让人温暖", "B.蓝色让人冷静", "C.浅色轻盈，深色沉重", "D.暖色凸出"]}, {"number": "12", "type": "单选题", "question": "人眼将物体按简单、规则、有序方式识别，符合？", "answer": "B", "explanation": "格式塔\"好图原则\"指人倾向于将物体按简单、规则、有序的方式识别。", "options": ["A.接近原则", "B.好图原则", "C.相似原则", "D.闭合原则"]}, {"number": "13", "type": "单选题", "question": "pyecharts添加标题和工具箱的配置方法？", "answer": "D", "explanation": "pyecharts中set_global_opts()用于配置标题、工具箱等全局选项。", "options": ["A.add_xaxis()", "B.add_yaxis()", "C.render()", "D.set_global_opts()"]}, {"number": "14", "type": "单选题", "question": "ECharts折线图添加数据点提示框需启用？", "answer": "B", "explanation": "ECharts折线图中tooltip组件用于显示数据点的提示框信息。", "options": ["A.legend", "B.tooltip", "C.title", "D.xAxis"]}, {"number": "15", "type": "单选题", "question": "pyecharts绘制词云图需导入的类？", "answer": "B", "explanation": "pyecharts绘制词云图需导入WordCloud类。", "options": ["A.Bar", "B.WordCloud", "C.Map", "D.Page"]}, {"number": "16", "type": "单选题", "question": "ECharts折线图指定纵坐标数据的配置项？", "answer": "A", "explanation": "ECharts折线图中yAxis指定纵坐标（数值）数据。", "options": ["A.yAxis", "B.xAxis", "C.title", "D.legend"]}, {"number": "17", "type": "单选题", "question": "关于数据可视化标准的正确描述？", "answer": "B", "explanation": "数据可视化五大标准：实用性、完整性、真实性、艺术性、交互性。", "options": ["A.只需实用性", "B.实用、完整、真实、艺术、交互", "C.仅关注艺术性", "D.标准不重要"]}, {"number": "18", "type": "单选题", "question": "视觉感知系统的基本特点？", "answer": "B", "explanation": "视觉感知系统基于相对判断（对比），而非绝对判断，易受环境和经验影响。", "options": ["A.基于绝对判断", "B.基于相对判断，而非绝对判断", "C.完全客观", "D.不受经验影响"]}, {"number": "19", "type": "单选题", "question": "A=np.mat([[1,4],[2,5],[3,6]])，A.T的结果？", "answer": "A", "explanation": "ndarray.T实现矩阵转置，将行列互换。", "options": ["A.[[1,2,3],[4,5,6]]", "B.[[1,4],[2,5],[3,6]]", "C.[[3,6],[2,5],[1,4]]", "D.[[4,5,6],[1,2,3]]"]}, {"number": "20", "type": "单选题", "question": "Pandas duplicated()方法的核心作用？", "answer": "C", "explanation": "Pandas的duplicated()方法用于检测并判断是否为重复行。", "options": ["A.删除重复行", "B.填充缺失值", "C.检测并判断是否为重复行", "D.数据排序"]}, {"number": "21", "type": "单选题", "question": "体现色彩\"轻重感\"的是？", "answer": "B", "explanation": "色彩的\"轻重感\"中，明度高的颜色使人感觉轻，明度低的颜色使人感觉重。", "options": ["A.红色让人温暖", "B.明度高的颜色使人感觉轻", "C.绿色代表自然", "D.暖色凸出"]}, {"number": "22", "type": "单选题", "question": "体现人眼\"基于相对判断\"的场景？", "answer": "A", "explanation": "左右灰色方块深浅对比错觉是\"基于相对判断\"的典型例子（如明度对比错觉）。", "options": ["A.左右灰色方块深浅对比错觉", "B.识别苹果是红色", "C.看到完整圆形", "D.识别文字"]}, {"number": "23", "type": "单选题", "question": "数据可视化流程中数据处理的后续步骤？", "answer": "C", "explanation": "数据可视化四步骤：数据采集 → 数据预处理 → 可视化映射（核心）→ 用户感知。", "options": ["A.数据采集", "B.数据清洗", "C.可视化映射", "D.用户感知"]}, {"number": "24", "type": "单选题", "question": "pyecharts整合多个图表形成看板的组件？", "answer": "A", "explanation": "pyecharts的Page组件可以整合多个图表形成看板。", "options": ["A.Page", "B.Bar", "C.Map", "D.WordCloud"]}, {"number": "25", "type": "单选题", "question": "Excel计算体积(长×宽×高)应使用的函数？", "answer": "B", "explanation": "Excel计算乘积应使用PRODUCT函数，SUM为求和，AVERAGE为求平均。", "options": ["A.SUM", "B.PRODUCT", "C.AVERAGE", "D.MAX"]}, {"number": "26", "type": "单选题", "question": "数据清洗通常包括哪些操作？", "answer": "A", "explanation": "数据清洗通常包括：去重、处理缺失值（fillna/dropna）、数据转换等操作。", "options": ["A.去重、处理缺失值、数据转换", "B.仅数据采集", "C.仅图表绘制", "D.仅用户交互"]}, {"number": "27", "type": "单选题", "question": "关于Excel函数组成，说法不正确的是？", "answer": "B", "explanation": "Excel函数由\"=\"开头、英文字母函数名、英文括号和参数组成，函数名不可为中文。", "options": ["A.必须以\"=\"开始", "B.函数名称可以是中文", "C.参数符号须英文状态", "D.括号成对出现"]}, {"number": "28", "type": "单选题", "question": "最能准确描述大数据可视化的是？", "answer": "B", "explanation": "大数据可视化将复杂数据图形化呈现，帮助用户快速获取有价值信息。", "options": ["A.仅用于展示", "B.将复杂数据图形化呈现帮助理解", "C.仅用于美化", "D.仅用于存储"]}, {"number": "29", "type": "单选题", "question": "初始化ECharts实例的正确方法？", "answer": "A", "explanation": "ECharts初始化使用echarts.init(document.getElementById(\"容器ID\"))。", "options": ["A.echarts.init(document.getElementById())", "B.echarts.start()", "C.echarts.begin()", "D.echarts.open()"]}, {"number": "30", "type": "单选题", "question": "初始化ECharts实例的正确方法？", "answer": "A", "explanation": "ECharts初始化方法为echarts.init()，需传入DOM容器元素。", "options": ["A.echarts.init()", "B.echarts.create()", "C.echarts.start()", "D.echarts.new()"]}, {"number": "31", "type": "单选题", "question": "数据可视化流程中的核心环节？", "answer": "C", "explanation": "可视化映射是数据可视化流程中的核心环节，将数据映射为图形属性。", "options": ["A.数据采集", "B.数据预处理", "C.可视化映射", "D.用户感知"]}, {"number": "32", "type": "单选题", "question": "可视化映射的后续环节？", "answer": "D", "explanation": "可视化映射的后续环节是用户感知，即用户对图表的理解和认知。", "options": ["A.数据采集", "B.数据预处理", "C.可视化映射", "D.用户感知"]}, {"number": "33", "type": "单选题", "question": "大数据可视化将____转化为易于理解的信息。", "answer": "B", "explanation": "大数据可视化将复杂数据转化为易于理解的信息。", "options": ["A.简单数据", "B.复杂数据", "C.文本数据", "D.结构化数据"]}, {"number": "34", "type": "单选题", "question": "体现人眼\"基于相对判断\"的场景？", "answer": "B", "explanation": "左右灰色方块深浅对比是\"基于相对判断\"的典型例子。", "options": ["A.识别颜色名称", "B.左右灰色方块深浅对比", "C.阅读文字", "D.看到完整图形"]}, {"number": "35", "type": "单选题", "question": "体现色彩\"冷暖感\"的是？", "answer": "B", "explanation": "色彩的\"冷暖感\"：红橙黄让人感到温暖，蓝绿紫让人感到冷静。", "options": ["A.浅色轻盈", "B.红橙黄温暖，蓝绿紫冷静", "C.暖色凸出", "D.深色沉重"]}, {"number": "36", "type": "单选题", "question": "关于视觉感知系统说法错误的是？", "answer": "C", "explanation": "视觉感知系统并非完全客观，受认知加工、经验和环境的影响。", "options": ["A.基于相对判断", "B.受经验影响", "C.完全客观不受认知加工影响", "D.易被边界吸引"]}, {"number": "37", "type": "单选题", "question": "向pyecharts柱状图添加Y轴数据的方法？", "answer": "D", "explanation": "pyecharts柱状图使用add_yaxis()添加Y轴（数值）数据。", "options": ["A.add_xaxis()", "B.set_data()", "C.add_data()", "D.add_yaxis()"]}, {"number": "38", "type": "单选题", "question": "ECharts绘制地图的type语句？", "answer": "C", "explanation": "ECharts中地图的type值为\"map\"。", "options": ["A.type:\"bar\"", "B.type:\"line\"", "C.type:\"map\"", "D.type:\"scatter\""]}, {"number": "39", "type": "单选题", "question": "Tableau中管理数据源和字段的部分？", "answer": "B", "explanation": "Tableau的数据窗格用于管理数据源和字段，分为维度和度量。", "options": ["A.工作表区域", "B.数据窗格", "C.仪表板", "D.故事面板"]}, {"number": "40", "type": "单选题", "question": "关于大数据可视化的正确描述？", "answer": "B", "explanation": "大数据可视化帮助用户快速获取有价值信息，是数据分析的重要环节。", "options": ["A.仅用于展示", "B.帮用户快速获取有价值信息", "C.仅用于美化", "D.与数据分析无关"]}, {"number": "41", "type": "单选题", "question": "关于视觉感知系统说法错误的是？", "answer": "B", "explanation": "视觉感知系统基于相对判断而非绝对判断。", "options": ["A.基于相对判断", "B.基于绝对判断而非相对判断", "C.受经验影响", "D.易被边界吸引"]}, {"number": "42", "type": "单选题", "question": "关于视觉感知系统说法错误的是？", "answer": "B", "explanation": "视觉感知系统受经验影响，并非完全客观。", "options": ["A.基于相对判断", "B.完全客观不受经验影响", "C.易被边界吸引", "D.受认知加工影响"]}, {"number": "43", "type": "单选题", "question": "颜色、大小相近的花朵看作同一花丛，遵循？", "answer": "A", "explanation": "格式塔\"相似原则\"指颜色、大小、形状相似的元素易被看作同一组/同一类。", "options": ["A.相似原则", "B.接近原则", "C.闭合原则", "D.连续原则"]}, {"number": "44", "type": "单选题", "question": "pyecharts绘制3D柱状图需导入的类？", "answer": "A", "explanation": "pyecharts绘制3D柱状图需导入Bar3D类。", "options": ["A.Bar3D", "B.Bar", "C.Map3D", "D.Line3D"]}, {"number": "45", "type": "单选题", "question": "关于Excel切片器，说法错误的是？", "answer": "B", "explanation": "Excel切片器用于筛选数据，提供交互式筛选，但不必与数据透视表一起使用。", "options": ["A.用于筛选数据", "B.必须与数据透视表一起使用", "C.提供交互式筛选", "D.可快速切换不同维度"]}, {"number": "46", "type": "单选题", "question": "Excel计算总进货成本(单价×数量)的函数？", "answer": "D", "explanation": "Excel计算乘积使用PRODUCT函数。", "options": ["A.SUM", "B.AVERAGE", "C.COUNT", "D.PRODUCT"]}, {"number": "47", "type": "单选题", "question": "pyecharts创建基本柱状图的类？", "answer": "B", "explanation": "pyecharts创建基本柱状图的类是Bar。", "options": ["A.Line", "B.Bar", "C.Scatter", "D.Pie"]}, {"number": "48", "type": "判断题", "question": "格式塔视觉原理强调人类倾向于将零散的视觉信息整合为一个整体。", "answer": "A", "explanation": "格式塔视觉原理强调人类整体感知，倾向于将零散的视觉信息整合为一个整体进行认知。", "options": ["A.对", "B.错"]}, {"number": "49", "type": "判断题", "question": "格式塔的\"闭合性原则\"指人倾向于填补缺失信息形成完整图形。", "answer": "A", "explanation": "格式塔\"闭合性原则\"指人倾向于自动填补缺失信息，形成完整的图形。", "options": ["A.对", "B.错"]}, {"number": "50", "type": "判断题", "question": "数据可视化技术只在商业领域有应用，其他领域应用较少。", "answer": "B", "explanation": "数据可视化技术广泛应用于商业、科研、医疗、教育等多个领域。", "options": ["A.对", "B.错"]}, {"number": "51", "type": "判断题", "question": "热力图用于展示地理位置相关的数据变化。", "answer": "A", "explanation": "热力图适合展示地理位置相关数据的密度或强度变化。", "options": ["A.对", "B.错"]}, {"number": "52", "type": "判断题", "question": "数据可视化技术不能用于实时监控系统运行状态。", "answer": "B", "explanation": "数据可视化技术可用于实时监控系统运行状态，如大屏监控。", "options": ["A.对", "B.错"]}, {"number": "53", "type": "判断题", "question": "ECharts中绘制柱状图的关键代码是设置type为scatter。", "answer": "B", "explanation": "ECharts绘制柱状图的type为\"bar\"，散点图type为\"scatter\"。", "options": ["A.对", "B.错"]}, {"number": "54", "type": "判断题", "question": "Matplotlib的subplot方法允许创建多个独立子图。", "answer": "A", "explanation": "Matplotlib的subplot方法可在同一画布上创建多个独立的子图。", "options": ["A.对", "B.错"]}, {"number": "55", "type": "判断题", "question": "接近性原则指靠得较近的元素易被感知为一个整体。", "answer": "A", "explanation": "格式塔\"接近性原则\"指距离较近的元素易被感知为一个整体。", "options": ["A.对", "B.错"]}, {"number": "56", "type": "判断题", "question": "在Tableau中默认情况下\"度量\"字段以绿色显示。", "answer": "A", "explanation": "Tableau中默认度量（绿色）为数值字段，维度（蓝色）为类别字段。", "options": ["A.对", "B.错"]}, {"number": "57", "type": "判断题", "question": "格式塔视觉原理与统计图表设计无关，无需考虑。", "answer": "B", "explanation": "格式塔视觉原理是数据可视化设计的重要理论基础，需充分考虑。", "options": ["A.对", "B.错"]}, {"number": "58", "type": "判断题", "question": "柱状图通常用于比较不同类别的数据值。", "answer": "A", "explanation": "柱状图常用于比较不同类别之间的数值大小。", "options": ["A.对", "B.错"]}, {"number": "59", "type": "判断题", "question": "折线图适用于展示数据随时间变化的趋势。", "answer": "A", "explanation": "折线图适用于展示数据随时间变化的趋势。", "options": ["A.对", "B.错"]}, {"number": "60", "type": "判断题", "question": "格式塔原理认为视觉感知由各独立元素单独作用。", "answer": "B", "explanation": "格式塔原理强调整体认知，认为整体不等于部分之和，非各元素单独作用。", "options": ["A.对", "B.错"]}, {"number": "61", "type": "判断题", "question": "热力图依赖颜色表达数值，可以提取特定数据点。", "answer": "B", "explanation": "热力图依赖颜色表达数值大小，难以精确提取特定数据点的具体值。", "options": ["A.对", "B.错"]}, {"number": "62", "type": "判断题", "question": "饼图适合用于表示精确的数据。", "answer": "B", "explanation": "饼图适合展示占比关系，不适合表示精确数据。", "options": ["A.对", "B.错"]}, {"number": "63", "type": "判断题", "question": "大数据可视化主要目的是帮用户快速获取有价值信息。", "answer": "A", "explanation": "大数据可视化主要目的是帮助用户快速获取有价值信息。", "options": ["A.对", "B.错"]}, {"number": "64", "type": "判断题", "question": "大数据可视化核心在于展示数据，而非分析数据。", "answer": "B", "explanation": "大数据可视化既展示数据，也用于分析数据，两者并重。", "options": ["A.对", "B.错"]}, {"number": "65", "type": "判断题", "question": "饼图适合用于展示数据的占比关系。", "answer": "A", "explanation": "饼图适合展示各部分的占比（构成）关系。", "options": ["A.对", "B.错"]}, {"number": "76", "type": "判断题", "question": "Excel函数的参数必须全部为数字，不能为文本或单元格引用。", "answer": "B", "explanation": "Excel函数的参数可以是数字、文本、单元格引用、逻辑值等。", "options": ["A.对", "B.错"]}, {"number": "78", "type": "判断题", "question": "根据格式塔原理，靠近的元素会被认为相互关联。", "answer": "A", "explanation": "格式塔原理中，距离靠近的元素易被认为相互关联（接近性原则）。", "options": ["A.对", "B.错"]}, {"number": "79", "type": "判断题", "question": "仪表盘图常用于表达多个指标的进度或实际情况。", "answer": "B", "explanation": "仪表盘图适合展示单指标的进度或实际情况，多指标可用多个仪表盘。", "options": ["A.对", "B.错"]}, {"number": "81", "type": "判断题", "question": "视觉通道的优先级对数据可视化设计没有影响。", "answer": "B", "explanation": "视觉通道的优先级影响数据可视化设计的效果，不同通道传递信息效率不同。", "options": ["A.对", "B.错"]}, {"number": "83", "type": "判断题", "question": "K线图广泛应用于股票、外汇等各类金融市场。", "answer": "A", "explanation": "K线图（蜡烛图）广泛应用于股票、外汇等金融市场分析。", "options": ["A.对", "B.错"]}, {"number": "84", "type": "判断题", "question": "大数据可视化技术的发展依赖于图形处理能力的提升。", "answer": "A", "explanation": "大数据可视化技术的发展依赖于图形处理与计算机性能的提升。", "options": ["A.对", "B.错"]}, {"number": "66", "type": "填空题", "question": "绘制词云主要使用的python库是____", "answer": "WordCloud", "explanation": "pyecharts绘制词云主要使用WordCloud库。", "options": null}, {"number": "67", "type": "填空题", "question": "自动补全不完整图形用了格式塔的____原则。", "answer": "闭合原则", "explanation": "格式塔\"闭合原则\"指人自动补全不完整图形。", "options": null}, {"number": "68", "type": "填空题", "question": "ECharts绘制散点图需设置参数为____", "answer": "type: scatter", "explanation": "ECharts绘制散点图需设置type为\"scatter\"。", "options": null}, {"number": "69", "type": "填空题", "question": "气泡图依靠____反映第三维度的信息。", "answer": "气泡的大小", "explanation": "气泡图依靠气泡的大小反映第三维度的信息（数值大小）。", "options": null}, {"number": "70", "type": "填空题", "question": "正相关时变化趋势____；负相关时____。", "answer": "相同、相反", "explanation": "正相关：两变量变化趋势相同（同增同减）；负相关：变化趋势相反。", "options": null}, {"number": "71", "type": "填空题", "question": "柱状图主要用于展示____之间的比较关系。", "answer": "类别数据", "explanation": "柱状图主要用于展示类别数据之间的比较关系。", "options": null}, {"number": "72", "type": "填空题", "question": "格式塔____性原则指相似元素易被认为是一个整体。", "answer": "相似", "explanation": "格式塔\"相似性原则\"指相似的元素易被认为是一个整体。", "options": null}, {"number": "73", "type": "填空题", "question": "格式塔____性原则指倾向于将较近的元素归为一组。", "answer": "接近", "explanation": "格式塔\"接近性原则\"指人倾向于将距离较近的元素归为一组。", "options": null}, {"number": "74", "type": "填空题", "question": "pyecharts柱状图设置x轴数据的函数是____", "answer": "add_xaxis()", "explanation": "pyecharts柱状图使用add_xaxis()添加X轴（类别）数据。", "options": null}, {"number": "80", "type": "填空题", "question": "业务流程规范、周期长、环节多的单流程分析用____", "answer": "漏斗图", "explanation": "漏斗图适用于业务流程规范、周期长、环节多的单流程分析。", "options": null}, {"number": "86", "type": "填空题", "question": "Tableau中仅展示特定条件数据的工具是____", "answer": "筛选器", "explanation": "Tableau中筛选器用于仅展示特定条件的数据。", "options": null}, {"number": "87", "type": "填空题", "question": "折线图基础上填充区域的图表类型是____", "answer": "面积图", "explanation": "面积图是在折线图基础上填充区域形成的图表类型。", "options": null}, {"number": "77", "type": "单选题", "question": "ECharts初始化流程必须的一步？", "answer": "A", "explanation": "ECharts初始化流程必须的一步是初始化DOM容器实例。", "options": ["A.初始化DOM容器实例", "B.导入CSS", "C.安装Node.js", "D.配置数据库"]}, {"number": "82", "type": "单选题", "question": "大数据可视化核心目标？", "answer": "A", "explanation": "大数据可视化核心目标是帮助用户快速获取有价值信息。", "options": ["A.帮用户快速获取有价值信息", "B.仅美化", "C.仅存储", "D.仅商业展示"]}, {"number": "85", "type": "单选题", "question": "关于格式塔描述错误的是？", "answer": "C", "explanation": "格式塔原则是数据可视化设计的重要理论基础，与之密切相关。", "options": ["A.接近性-靠近的元素易感知为一组", "B.闭合性-填补缺失信息", "C.格式塔与数据可视化无关", "D.相似性-相像元素组合"]}, {"number": "88", "type": "单选题", "question": "流程图箭头引导步骤顺序利用了哪条原则？", "answer": "C", "explanation": "流程图箭头引导阅读方向，利用了格式塔\"连续原则\"（方向一致）。", "options": ["A.接近", "B.相似", "C.连续", "D.闭合"]}, {"number": "89", "type": "单选题", "question": "Tableau筛选器的主要功能？", "answer": "B", "explanation": "Tableau筛选器的主要功能是仅展示满足特定条件的数据。", "options": ["A.美化图表", "B.仅展示特定条件数据", "C.修改数据源", "D.导出数据"]}, {"number": "90", "type": "单选题", "question": "最能说明\"接近性原则\"的是？", "answer": "B", "explanation": "格式塔\"接近性原则\"指距离较近的元素易被看作一个整体/集群。", "options": ["A.颜色相近看作一组", "B.距离较近散点归为一个集群", "C.不完整图形被补全", "D.同方向运动看作一组"]}, {"number": "91", "type": "单选题", "question": "选择图表最优先考虑的因素？", "answer": "B", "explanation": "选择图表最优先考虑数据特性与表达目标，而非美观或动画。", "options": ["A.美观程度", "B.数据特性与表达目标", "C.颜色搭配", "D.动画效果"]}, {"number": "PPT-1", "type": "填空题", "question": "正相关时横纵轴变化趋势____；负相关时____。", "answer": "相同、相反", "explanation": "正相关时两变量变化趋势相同，负相关时变化趋势相反。", "options": null}, {"number": "PPT-2", "type": "填空题", "question": "气泡图依靠____反映第三维度的信息。", "answer": "气泡的大小", "explanation": "气泡图依靠气泡大小反映第三维度的信息。", "options": null}, {"number": "PPT-3", "type": "填空题", "question": "____图更侧重表现节点之间能量的单向流动。", "answer": "桑基", "explanation": "桑基图侧重表现节点之间能量的单向流动。", "options": null}, {"number": "PPT-4", "type": "填空题", "question": "热力图X/Y轴为____型数据，色块图为____数据。", "answer": "连续、离散", "explanation": "热力图X/Y轴为连续型数据，色块图为离散型数据。", "options": null}, {"number": "PPT-5", "type": "判断题", "question": "热力图可以提取特定数据点或指出色块差异。", "answer": "B", "explanation": "热力图依赖颜色表达数值，不能精确提取特定数据点具体值。", "options": ["A.对", "B.错"]}, {"number": "PPT-6", "type": "判断题", "question": "饼图适合表示精确的数据。", "answer": "B", "explanation": "饼图适合展示占比关系，不适合表示精确数据。", "options": ["A.对", "B.错"]}, {"number": "PPT-7", "type": "判断题", "question": "面积图不适合精确读取特定时间点具体数值。", "answer": "A", "explanation": "面积图填充区域导致难以精确读取特定时间点的具体数值。", "options": ["A.对", "B.错"]}, {"number": "PPT-8", "type": "判断题", "question": "桑基图非常适合展示两个变量简单相关性强弱。", "answer": "B", "explanation": "桑基图展示能量流动，散点图才适合展示两个变量的相关性强弱。", "options": ["A.对", "B.错"]}, {"number": "PPT-9", "type": "判断题", "question": "仪表盘图非常适合同时展示大量指标。", "answer": "B", "explanation": "仪表盘图适合展示单个指标，多指标应使用多个仪表盘或其他图表。", "options": ["A.对", "B.错"]}, {"number": "75.01", "type": "材料分析题", "question": "对比三种业态年均会员数量", "options": ["A.柱状图", "B.折线图", "C.饼图", "D.散点图"], "answer": "A", "explanation": "柱状图适用于不同类别（三种业态）之间的数值比较。"}, {"number": "75.02", "type": "材料分析题", "question": "分析会员年龄分布情况", "options": ["A.柱状图", "B.散点图", "C.饼图", "D.直方图/密度图"], "answer": "D", "explanation": "直方图/密度图用于展示数据分布情况，如年龄分布。"}, {"number": "75.03", "type": "材料分析题", "question": "三大业务营收占比", "options": ["A.柱状图", "B.饼图/环形图", "C.散点图", "D.折线图"], "answer": "B", "explanation": "饼图/环形图适合展示各部分的占比构成关系。"}, {"number": "75.04", "type": "材料分析题", "question": "每月平均用户流失率趋势", "options": ["A.柱状图", "B.饼图", "C.折线图/面积图", "D.雷达图"], "answer": "C", "explanation": "折线图/面积图适用于展示数据随时间变化的趋势。"}, {"number": "75.05", "type": "材料分析题", "question": "健身次数与锻炼时长相关性", "options": ["A.柱状图", "B.折线图", "C.饼图", "D.散点图"], "answer": "D", "explanation": "散点图用于展示两个变量之间的相关关系。"}, {"number": "75.06", "type": "材料分析题", "question": "各省份会员渗透率差异", "options": ["A.饼图", "B.折线图", "C.地图类图", "D.柱状图"], "answer": "C", "explanation": "地图类图用于展示地理空间数据的分布差异。"}, {"number": "75.07", "type": "材料分析题", "question": "五城市月消费、频次、总数对比", "options": ["A.柱状图", "B.气泡图", "C.雷达图", "D.饼图"], "answer": "B", "explanation": "气泡图通过气泡大小反映第三维度（总数）信息，适合多维度比较。"}, {"number": "75.08", "type": "材料分析题", "question": "小程序→体验卡→核销→会员转化", "options": ["A.桑基图", "B.漏斗图", "C.折线图", "D.散点图"], "answer": "B", "explanation": "漏斗图适用于展示业务流程各环节的转化与衰减。"}, {"number": "75.09", "type": "材料分析题", "question": "利润在五个方向的分配流动", "options": ["A.漏斗图", "B.雷达图", "C.桑基图", "D.饼图"], "answer": "C", "explanation": "桑基图侧重表现节点之间能量的单向流动与分配。"}, {"number": "75.10", "type": "材料分析题", "question": "会员满意度KPI完成92%", "options": ["A.仪表盘图", "B.柱状图", "C.饼图", "D.雷达图"], "answer": "A", "explanation": "仪表盘图适合展示单个指标的完成进度（如KPI 92%）。"}];
+const codeRefs = [{"title": "ECharts 柱状图完整流程", "code": "<!DOCTYPE html>\n<html>\n<head>\n  <meta charset=\"utf-8\">\n  <script src=\"echarts.js\"><\/script>\n</head>\n<body>\n  <div id=\"main\" style=\"width:600px;height:400px;\"></div>\n  <script>\n    var myChart = echarts.init(document.getElementById(\"main\"));\n    var option = {\n      title: { text: \"柱状图\" },\n      tooltip: {},\n      xAxis: { data: [\"衬衫\",\"羊毛衫\",\"雪纺衫\",\"裤子\",\"高跟鞋\",\"袜子\"] },\n      yAxis: {},\n      series: [{ name: \"销量\", type: \"bar\", data: [5,20,36,10,10,20] }]\n    };\n    myChart.setOption(option);\n  <\/script>\n</body>\n</html>", "steps": "HTML骨架 → 导入echarts.js → 创建DOM容器 → echarts.init()初始化 → 配置option → setOption()渲染"}, {"title": "ECharts 雷达图（多维度对比）", "code": "var option = {\n  title: { text: \"景点多维度对比\" },\n  radar: {\n    indicator: [\n      { name: \"交通便利性\", max: 100 },\n      { name: \"安全性\", max: 100 },\n      { name: \"性价比\", max: 100 },\n      { name: \"服务质量\", max: 100 },\n      { name: \"环境卫生\", max: 100 },\n      { name: \"游客满意度\", max: 100 }\n    ]\n  },\n  series: [{\n    type: \"radar\",\n    data: [\n      { name: \"故宫\", value: [80,90,70,85,88,92] },\n      { name: \"西湖\", value: [75,85,95,80,90,88] },\n      { name: \"黄山\", value: [60,95,80,75,85,85] }\n    ]\n  }]\n};\nmyChart.setOption(option);", "steps": "配置title标题 → 配置radar指标维度 → series中type设为radar → 传入各实体各维度数据 → setOption()"}, {"title": "pyecharts 五步流程（柱状图）", "code": "from pyecharts.charts import Bar        # 1.导入库\nbar = Bar()                             # 2.创建实例\nbar.add_xaxis([\"数学\",\"物理\",\"化学\",\"英语\"])  # 3.添加X轴\nbar.add_yaxis(\"成绩\",[70,85,95,64])      # 3.添加Y轴\nbar.set_global_opts(title_opts={\"text\":\"成绩柱状图\"})  # 4.配置\nbar.render()                            # 5.生成HTML网页", "steps": "导入库 → 创建实例 → add_xaxis/add_yaxis添加数据 → set_global_opts全局配置 → render()生成HTML"}, {"title": "pyecharts AI岗位Top5城市", "code": "import pandas as pd\nfrom pyecharts.charts import Bar\n\ndf = pd.read_csv(\"AI_jobs.csv\")\ncity_counts = df[\"city\"].value_counts().head(5)\n\nbar = Bar()\nbar.add_xaxis(city_counts.index.tolist())\nbar.add_yaxis(\"岗位数量\", city_counts.values.tolist())\nbar.set_global_opts(title_opts={\"text\":\"AI岗位Top5城市\"})\nbar.render(\"ai_jobs_top5.html\")", "steps": "导入库 → 读取CSV → value_counts统计 → head(5)取前五 → Bar()创建 → add_xaxis/add_yaxis → render()保存"}, {"title": "pyecharts 词云图（AI岗位技能）", "code": "import pandas as pd\nfrom pyecharts.charts import WordCloud\n\ndf = pd.read_csv(\"AI_jobs.csv\")\nskills = df[\"skill\"].str.split(\",\").explode().str.strip()\nskill_counts = skills.value_counts().head(50)\n\nc = WordCloud()\nc.add(\"\", list(zip(skill_counts.index, skill_counts.values)))\nc.set_global_opts(title_opts={\"text\":\"AI岗位技能词云\"})\nc.render(\"ai_skills_wordcloud.html\")", "steps": "导入库 → 读取CSV → split+explode拆分技能 → value_counts统计 → WordCloud() → add()添加数据 → render()"}, {"title": "Matplotlib 三部分流程", "code": "import matplotlib.pyplot as plt      # 第0步：导库\n\n# 第一部分：创建画布与子图\nfig = plt.figure(figsize=(10,6))\nplt.subplot(1,1,1)\n\n# 第二部分：添加可视化内容\nplt.plot(x_data, y_data)  # 折线图（或 plt.bar 柱状图）\n\n# 第三部分：保存与展示\nplt.savefig(\"output.png\")\nplt.show()", "steps": "导库 → 创建画布figure+子图subplot → 添加plot/bar等图形 → savefig保存 → show展示"}, {"title": "Matplotlib 看板（各城区房屋平均租金）", "code": "import matplotlib.pyplot as plt\nimport pandas as pd\n\ndf = pd.read_csv(\"housing.csv\")\navg_rent = df.groupby(\"district\")[\"rent\"].mean().sort_values()\n\nplt.figure(figsize=(12,6))\nplt.plot(avg_rent.index, avg_rent.values, marker=\"o\", color=\"blue\")\nplt.xlabel(\"城区\")\nplt.ylabel(\"平均租金\")\nplt.title(\"各城区房屋平均租金\")\nplt.xticks(rotation=45)\nplt.tight_layout()\nplt.savefig(\"rent_analysis.png\")\nplt.show()", "steps": "导库 → 读取CSV → groupby+mean聚合 → sort_values排序 → figure创建 → plot折线图 → 标签/标题 → savefig+show"}];
+const TOTAL = questions.length;
+
+// ========== State ==========
+let currentQ = 0;
+let userAnswers = new Array(TOTAL).fill(null);
+let submitted = new Array(TOTAL).fill(false);
+let results = new Array(TOTAL).fill(null);
+let navOpen = false;
+
+// ========== Helpers ==========
+function getDisplayAnswer(q, ansLetter) {
+  if (ansLetter === null || ansLetter === undefined) return '(未作答)';
+  if (q.type === '判断题') return ansLetter === 'A' ? '对' : '错';
+  if (q.type === '填空题' || !q.options) return ansLetter;
+  const idx = ansLetter.charCodeAt(0) - 65;
+  return (q.options[idx] || ansLetter);
+}
+
+function getNavStatus(i) {
+  if (results[i] === null) return 'unanswered';
+  if (!submitted[i]) return 'unsubmitted';
+  return results[i].correct ? 'correct' : 'wrong';
+}
+
+// ========== Nav ==========
+function toggleNav() {
+  navOpen = !navOpen;
+  document.getElementById('navPanel').classList.toggle('open', navOpen);
+  if (navOpen) renderNavGrid();
+}
+
+function renderNavGrid() {
+  let html = '';
+  for (let i = 0; i < TOTAL; i++) {
+    const q = questions[i];
+    let cls = 'nav-num';
+    if (i === currentQ) cls += ' active';
+    else {
+      const st = getNavStatus(i);
+      if (st === 'correct') cls += ' done';
+      else if (st === 'wrong') cls += ' wrong';
+      else if (st === 'unsubmitted') cls += ' unsub';
+    }
+    html += `<a class="${cls}" onclick="jumpTo(${i})" title="${q.type}: ${q.question.substring(0,40)}">${i+1}</a>`;
+  }
+  document.getElementById('navGrid').innerHTML = html;
+}
+
+function jumpTo(idx) {
+  currentQ = idx;
+  navOpen = false;
+  document.getElementById('navPanel').classList.remove('open');
+  render();
+}
+
+// ========== Render ==========
+function render() {
+  const q = questions[currentQ];
+  const isSubmitted = submitted[currentQ];
+
+  // Progress
+  let totalDone = results.filter(r => r !== null).length;
+  document.getElementById('progressText').textContent =
+    `第 ${currentQ + 1} / ${TOTAL} 题（已答 ${totalDone} 题）`;
+
+  // Material context (only for 75.x)
+  const matCtx = document.getElementById('materialContext');
+  if (q.number.startsWith('75.')) {
+    matCtx.classList.remove('hidden');
+  } else {
+    matCtx.classList.add('hidden');
+  }
+
+  // Badge
+  const badgeMap = {
+    '单选题': '<span class="badge badge-single">【单选题】</span>',
+    '判断题': '<span class="badge badge-judge">【判断题】</span>',
+    '填空题': '<span class="badge badge-fill">【填空题】</span>',
+    '材料分析题': '<span class="badge badge-material">【材料分析题】</span>'
+  };
+  document.getElementById('badgeArea').innerHTML = badgeMap[q.type] || '';
+
+  // Question text - show original content as-is
+  document.getElementById('questionText').textContent = q.question;
+
+  // Options or fill
+  const optArea = document.getElementById('optionsArea');
+  const fillArea = document.getElementById('fillArea');
+  const fillInput = document.getElementById('fillInput');
+
+  if (q.type === '填空题') {
+    optArea.classList.add('hidden');
+    optArea.innerHTML = '';
+    fillArea.classList.remove('hidden');
+    fillInput.value = userAnswers[currentQ] || '';
+    fillInput.disabled = isSubmitted;
+    fillInput.className = 'fill-input' + (isSubmitted ? ' locked' : '');
+    if (!isSubmitted) {
+      fillInput.onblur = function() { autoSubmitFill(); };
+      fillInput.onkeydown = function(e) { if (e.key === 'Enter') { autoSubmitFill(); } };
+    } else {
+      fillInput.onblur = null;
+      fillInput.onkeydown = null;
+    }
+  } else {
+    fillArea.classList.add('hidden');
+    optArea.classList.remove('hidden');
+    const selected = userAnswers[currentQ];
+    let html = '<div class="options">';
+    q.options.forEach((opt, i) => {
+      const letter = String.fromCharCode(65 + i);
+      const checked = selected === letter ? 'checked' : '';
+      let extraClass = '';
+      if (isSubmitted) {
+        extraClass = ' locked';
+        if (letter === q.answer) extraClass += ' correct';
+        else if (letter === selected && letter !== q.answer) extraClass += ' wrong';
+      }
+      html += `<label class="option-item${extraClass}">
+        <input type="radio" name="q${currentQ}" value="${letter}" ${checked} ${isSubmitted ? 'disabled' : ''} onchange="autoSubmit('${letter}')">
+        <span>${opt}</span>
+      </label>`;
+    });
+    html += '</div>';
+    optArea.innerHTML = html;
+  }
+
+  // Submit button - hidden (auto-submit on selection)
+  const submitBtn = document.getElementById('submitBtn');
+  submitBtn.classList.add('hidden');
+
+  // Result
+  const resultArea = document.getElementById('resultArea');
+  if (isSubmitted && results[currentQ] !== null) {
+    resultArea.classList.remove('hidden');
+    const r = results[currentQ];
+    if (r.correct) {
+      resultArea.innerHTML = `<div class="result-box result-correct">
+        <strong>回答正确</strong>
+        <div class="explain-line">考点解析：${q.explanation}</div>
+      </div>`;
+    } else {
+      const correctDisplay = getDisplayAnswer(q, q.answer);
+      const userDisplay = getDisplayAnswer(q, r.userAnswer);
+      resultArea.innerHTML = `<div class="result-box result-wrong">
+        <strong>回答错误</strong>
+        <div class="answer-line">你的答案：${userDisplay}</div>
+        <div class="answer-line">正确答案：${correctDisplay}</div>
+        <div class="explain-line">考点解析：${q.explanation}</div>
+      </div>`;
+    }
+  } else {
+    resultArea.classList.add('hidden');
+  }
+
+  // Hide other pages
+  document.getElementById('questionArea').classList.remove('hidden');
+  document.getElementById('statsPage').classList.add('hidden');
+  document.getElementById('wrongPage').classList.add('hidden');
+  document.getElementById('codeRefPage').classList.add('hidden');
+
+  if (navOpen) renderNavGrid();
+}
+
+// ========== Actions ==========
+function selectOption(val) {
+  userAnswers[currentQ] = val;
+}
+
+function autoSubmit(val) {
+  if (submitted[currentQ]) return;
+  userAnswers[currentQ] = val;
+  submitAnswer();
+}
+
+function autoSubmitFill() {
+  if (submitted[currentQ]) return;
+  const val = document.getElementById('fillInput').value.trim();
+  if (!val) return;
+  userAnswers[currentQ] = val;
+  submitAnswer();
+}
+
+function submitAnswer() {
+  if (submitted[currentQ]) return;
+  const q = questions[currentQ];
+  let userAns;
+
+  if (q.type === '填空题') {
+    userAns = document.getElementById('fillInput').value.trim();
+    if (!userAns) { alert('请先输入答案！'); return; }
+  } else {
+    userAns = userAnswers[currentQ];
+    if (!userAns) { alert('请先选择一个选项！'); return; }
+  }
+
+  userAnswers[currentQ] = userAns;
+  submitted[currentQ] = true;
+
+  let correct;
+  if (q.type === '填空题') {
+    correct = checkFillAnswer(userAns, q.answer);
+  } else {
+    correct = (userAns === q.answer);
+  }
+
+  results[currentQ] = { correct, userAnswer: userAns, correctAnswer: q.answer };
+  render();
+}
+
+function checkFillAnswer(userAns, correctAns) {
+  function norm(s) {
+    return s.replace(/\s+/g, '').replace(/[，。、；：！？""''（）【】]/g, function(m) {
+      const map = {'，':',','。':'.','、':',','；':';','：':':','！':'!','？':'?','"':'"','"':'"','\'':"'",'（':'(','）':')','【':'[','】':']'};
+      return map[m] || m;
+    }).toLowerCase();
+  }
+  return norm(userAns) === norm(correctAns);
+}
+
+function nextQuestion() {
+  if (currentQ < TOTAL - 1) { currentQ++; render(); }
+}
+
+function prevQuestion() {
+  if (currentQ > 0) { currentQ--; render(); }
+}
+
+// ========== Code Reference ==========
+function showCodeRef() {
+  document.getElementById('questionArea').classList.add('hidden');
+  document.getElementById('statsPage').classList.add('hidden');
+  document.getElementById('wrongPage').classList.add('hidden');
+  document.getElementById('codeRefPage').classList.remove('hidden');
+
+  let html = '';
+  codeRefs.forEach((ref, i) => {
+    html += `<div class="code-ref">
+      <div class="code-ref-title">${i+1}. ${ref.title}</div>
+      <div class="code-steps">核心步骤：${ref.steps}</div>
+      <button class="btn btn-outline btn-sm" onclick="toggleCode(${i})" id="codeBtn${i}">显示代码</button>
+      <div class="code-block" id="codeBlock${i}">${ref.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')}</div>
+    </div>`;
+  });
+  document.getElementById('codeRefContent').innerHTML = html;
+}
+
+function toggleCode(idx) {
+  const block = document.getElementById('codeBlock' + idx);
+  const btn = document.getElementById('codeBtn' + idx);
+  block.classList.toggle('open');
+  btn.textContent = block.classList.contains('open') ? '隐藏代码' : '显示代码';
+}
+
+// ========== Stats ==========
+function showStats() {
+  let correctCount = results.filter(r => r && r.correct).length;
+  let wrongCount = results.filter(r => r && !r.correct).length;
+  let unanswered = results.filter(r => r === null).length;
+  let answered = TOTAL - unanswered;
+  let rate = answered > 0 ? Math.round((correctCount / answered) * 100) : 0;
+
+  document.getElementById('questionArea').classList.add('hidden');
+  document.getElementById('statsPage').classList.remove('hidden');
+  document.getElementById('wrongPage').classList.add('hidden');
+  document.getElementById('codeRefPage').classList.add('hidden');
+
+  const ring = document.getElementById('rateRing');
+  const rateColor = rate >= 80 ? '#43a047' : rate >= 60 ? '#fb8c00' : '#e53935';
+  ring.style.background = rateColor;
+  ring.textContent = rate + '%';
+
+  document.getElementById('statsGrid').innerHTML =
+    `<div class="stat-item"><div class="stat-value">${answered}</div><div class="stat-label">已答题数</div></div>
+     <div class="stat-item green"><div class="stat-value">${correctCount}</div><div class="stat-label">答对</div></div>
+     <div class="stat-item red"><div class="stat-value">${wrongCount}</div><div class="stat-label">答错</div></div>
+     <div class="stat-item orange"><div class="stat-value">${unanswered}</div><div class="stat-label">未答题</div></div>`;
+}
+
+// ========== Wrong List ==========
+function showWrongList() {
+  const wrongs = [];
+  questions.forEach((q, i) => {
+    if (results[i] && !results[i].correct) {
+      wrongs.push({ index: i, q, r: results[i] });
+    }
+  });
+
+  if (wrongs.length === 0) { alert('没有错题，太棒了！'); return; }
+
+  document.getElementById('questionArea').classList.add('hidden');
+  document.getElementById('statsPage').classList.add('hidden');
+  document.getElementById('wrongPage').classList.remove('hidden');
+  document.getElementById('codeRefPage').classList.add('hidden');
+
+  const badgeMap = {
+    '单选题': '<span class="badge badge-single">【单选题】</span>',
+    '判断题': '<span class="badge badge-judge">【判断题】</span>',
+    '填空题': '<span class="badge badge-fill">【填空题】</span>',
+    '材料分析题': '<span class="badge badge-material">【材料分析题】</span>'
+  };
+
+  let html = '';
+  wrongs.forEach(w => {
+    const userDisp = getDisplayAnswer(w.q, w.r.userAnswer);
+    const correctDisp = getDisplayAnswer(w.q, w.r.correctAnswer);
+    html += `<div class="wrong-item">
+      <div class="wrong-q">${badgeMap[w.q.type] || ''} ${w.q.question}</div>
+      <div class="wrong-detail">
+        <span class="label">你的答案：</span><span class="your-ans">${userDisp}</span><br>
+        <span class="label">正确答案：</span><span class="correct-ans">${correctDisp}</span><br>
+        <span class="label">考点解析：</span>${w.q.explanation}
+      </div>
+    </div>`;
+  });
+  document.getElementById('wrongListContent').innerHTML = html;
+}
+
+// ========== Reset ==========
+function resetAll() {
+  if (!confirm('确定要重置所有记录，从头开始答题吗？')) return;
+  userAnswers = new Array(TOTAL).fill(null);
+  submitted = new Array(TOTAL).fill(false);
+  results = new Array(TOTAL).fill(null);
+  currentQ = 0;
+  navOpen = false;
+  document.getElementById('navPanel').classList.remove('open');
+  render();
+}
+
+// ========== Init ==========
+render();
+</script>
+</body>
+</html>
