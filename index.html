@@ -182,6 +182,7 @@ body {
       <button class="btn btn-outline btn-sm" onclick="toggleNav()">题号</button>
       <button class="btn btn-outline btn-sm" onclick="showCodeRef()">代码</button>
       <button class="btn btn-outline btn-sm" onclick="showWrongList()">错题</button>
+      <button class="btn btn-outline btn-sm" onclick="resetAll()">重刷</button>
       <button class="btn btn-outline btn-sm" onclick="prevQuestion()">←</button>
       <button class="btn btn-outline btn-sm" onclick="nextQuestion()">→</button>
     </div>
@@ -400,21 +401,24 @@ function render() {
   if (isSubmitted && results[currentQ] !== null) {
     resultArea.classList.remove('hidden');
     const r = results[currentQ];
+    let resultHtml = '';
     if (r.correct) {
-      resultArea.innerHTML = `<div class="result-box result-correct">
+      resultHtml = `<div class="result-box result-correct">
         <strong>回答正确</strong>
         <div class="explain-line">考点解析：${q.explanation}</div>
       </div>`;
     } else {
       const correctDisplay = getDisplayAnswer(q, q.answer);
       const userDisplay = getDisplayAnswer(q, r.userAnswer);
-      resultArea.innerHTML = `<div class="result-box result-wrong">
+      resultHtml = `<div class="result-box result-wrong">
         <strong>回答错误</strong>
         <div class="answer-line">你的答案：${userDisplay}</div>
         <div class="answer-line">正确答案：${correctDisplay}</div>
         <div class="explain-line">考点解析：${q.explanation}</div>
       </div>`;
     }
+    resultHtml += `<div style="margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="redoQuestion()">重做本题</button></div>`;
+    resultArea.innerHTML = resultHtml;
   } else {
     resultArea.classList.add('hidden');
   }
@@ -490,6 +494,13 @@ function nextQuestion() {
 
 function prevQuestion() {
   if (currentQ > 0) { currentQ--; render(); }
+}
+
+function redoQuestion() {
+  userAnswers[currentQ] = null;
+  submitted[currentQ] = false;
+  results[currentQ] = null;
+  render();
 }
 
 // ========== Code Reference ==========
