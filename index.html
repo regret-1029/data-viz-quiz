@@ -357,7 +357,7 @@ function renderNavGrid() {
       else if (st === 'wrong') cls += ' wrong';
       else if (st === 'unsubmitted') cls += ' unsub';
     }
-    html += ('<a class="' + cls + '" onclick="jumpTo(' + i + ')" title="' + q.type + ': ' + q.question.substring(0,40) + '">' + i+1 + '</a>');
+    html += ('<a class="' + (cls) + '" onclick="jumpTo(' + (i) + ')" title="' + (q.type) + ': ' + (q.question.substring(0,40)) + '">' + (i+1) + '</a>');
   }
   document.getElementById('navGrid').innerHTML = html;
 }
@@ -377,7 +377,7 @@ function render() {
   // Progress
   var totalDone = results.filter(function(r) { return r !== null; }).length;
   document.getElementById('progressText').textContent =
-    ('第 ' + currentQ + 1 + ' / ' + TOTAL + ' 题（已答 ' + totalDone + ' 题）');
+    ('第 ' + (currentQ + 1) + ' / ' + (TOTAL) + ' 题（已答 ' + (totalDone) + ' 题）');
 
   // Material context (only for 75.x)
   var matCtx = document.getElementById('materialContext');
@@ -432,7 +432,7 @@ function render() {
         if (letter === q.answer) extraClass += ' correct';
         else if (letter === selected && letter !== q.answer) extraClass += ' wrong';
       }
-      html += ('<label class="option-item' + extraClass + '">\n        <input type="radio" name="q' + currentQ + '" value="' + letter + '" ' + checked + ' ' + isSubmitted ? 'disabled' : '' + ' onchange="autoSubmit(\'' + letter + '\')">\n        <span>' + opt + '</span>\n      </label>');
+      html += ('<label class="option-item' + (extraClass) + '">\n        <input type="radio" name="q' + (currentQ) + '" value="' + (letter) + '" ' + (checked) + ' ' + (isSubmitted ? 'disabled' : '') + ' onchange="autoSubmit(\'' + (letter) + '\')">\n        <span>' + (opt) + '</span>\n      </label>');
     });
     html += '</div>';
     optArea.innerHTML = html;
@@ -449,11 +449,11 @@ function render() {
     var r = results[currentQ];
     var resultHtml = '';
     if (r.correct) {
-      resultHtml = ('<div class="result-box result-correct">\n        <strong>回答正确</strong>\n        <div class="explain-line">考点解析：' + q.explanation + '</div>\n      </div>');
+      resultHtml = ('<div class="result-box result-correct">\n        <strong>回答正确</strong>\n        <div class="explain-line">考点解析：' + (q.explanation) + '</div>\n      </div>');
     } else {
       var correctDisplay = getDisplayAnswer(q, q.answer);
       var userDisplay = getDisplayAnswer(q, r.userAnswer);
-      resultHtml = ('<div class="result-box result-wrong">\n        <strong>回答错误</strong>\n        <div class="answer-line">你的答案：' + userDisplay + '</div>\n        <div class="answer-line">正确答案：' + correctDisplay + '</div>\n        <div class="explain-line">考点解析：' + q.explanation + '</div>\n      </div>');
+      resultHtml = ('<div class="result-box result-wrong">\n        <strong>回答错误</strong>\n        <div class="answer-line">你的答案：' + (userDisplay) + '</div>\n        <div class="answer-line">正确答案：' + (correctDisplay) + '</div>\n        <div class="explain-line">考点解析：' + (q.explanation) + '</div>\n      </div>');
     }
     resultHtml += '<div style="margin-top:10px;"><button class="btn btn-outline btn-sm" onclick="redoQuestion()">重做本题</button></div>';
     resultArea.innerHTML = resultHtml;
@@ -552,7 +552,7 @@ function showCodeRef() {
 
   var html = '';
   codeRefs.forEach(function(ref, i) {
-    html += ('<div class="code-ref">\n      <div class="code-ref-title">' + i+1 + '. ' + ref.title + '</div>\n      <div class="code-steps">核心步骤：' + ref.steps + '</div>\n      <button class="btn btn-outline btn-sm" onclick="toggleCode(' + i + ')" id="codeBtn' + i + '">显示代码</button>\n      <div class="code-block" id="codeBlock' + i + '">' + ref.code.replace(/</g, '&lt;').replace(/>/g, '&gt;') + '</div>\n    </div>');
+    html += ('<div class="code-ref">\n      <div class="code-ref-title">' + (i+1) + '. ' + (ref.title) + '</div>\n      <div class="code-steps">核心步骤：' + (ref.steps) + '</div>\n      <button class="btn btn-outline btn-sm" onclick="toggleCode(' + (i) + ')" id="codeBtn' + (i) + '">显示代码</button>\n      <div class="code-block" id="codeBlock' + (i) + '">' + (ref.code.replace(/</g, '&lt;').replace(/>/g, '&gt;')) + '</div>\n    </div>');
   });
   document.getElementById('codeRefContent').innerHTML = html;
 }
@@ -584,7 +584,7 @@ function showStats() {
   ring.textContent = rate + '%';
 
   document.getElementById('statsGrid').innerHTML =
-    ('<div class="stat-item"><div class="stat-value">' + answered + '</div><div class="stat-label">已答题数</div></div>\n     <div class="stat-item green"><div class="stat-value">' + correctCount + '</div><div class="stat-label">答对</div></div>\n     <div class="stat-item red"><div class="stat-value">' + wrongCount + '</div><div class="stat-label">答错</div></div>\n     <div class="stat-item orange"><div class="stat-value">' + unanswered + '</div><div class="stat-label">未答题</div></div>');
+    ('<div class="stat-item"><div class="stat-value">' + (answered) + '</div><div class="stat-label">已答题数</div></div>\n     <div class="stat-item green"><div class="stat-value">' + (correctCount) + '</div><div class="stat-label">答对</div></div>\n     <div class="stat-item red"><div class="stat-value">' + (wrongCount) + '</div><div class="stat-label">答错</div></div>\n     <div class="stat-item orange"><div class="stat-value">' + (unanswered) + '</div><div class="stat-label">未答题</div></div>');
 }
 
 // ========== Wrong List ==========
@@ -615,7 +615,7 @@ function showWrongList() {
   wrongs.forEach(function(w) {
     var userDisp = getDisplayAnswer(w.q, w.r.userAnswer);
     var correctDisp = getDisplayAnswer(w.q, w.r.correctAnswer);
-    html += ('<div class="wrong-item">\n      <div class="wrong-q">' + badgeMap[w.q.type] || '' + ' ' + w.q.question + '</div>\n      <div class="wrong-detail">\n        <span class="label">你的答案：</span><span class="your-ans">' + userDisp + '</span><br>\n        <span class="label">正确答案：</span><span class="correct-ans">' + correctDisp + '</span><br>\n        <span class="label">考点解析：</span>' + w.q.explanation + '\n      </div>\n    </div>');
+    html += ('<div class="wrong-item">\n      <div class="wrong-q">' + (badgeMap[w.q.type] || '') + ' ' + (w.q.question) + '</div>\n      <div class="wrong-detail">\n        <span class="label">你的答案：</span><span class="your-ans">' + (userDisp) + '</span><br>\n        <span class="label">正确答案：</span><span class="correct-ans">' + (correctDisp) + '</span><br>\n        <span class="label">考点解析：</span>' + (w.q.explanation) + '\n      </div>\n    </div>');
   });
   document.getElementById('wrongListContent').innerHTML = html;
 }
@@ -678,7 +678,7 @@ function showHistory() {
   var html = '';
   history.forEach(function(h, i) {
     var color = h.rate >= 80 ? '#43a047' : h.rate >= 60 ? '#fb8c00' : '#e53935';
-    html += ('<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;flex-wrap:wrap;gap:6px;">\n      <span style="font-size:13px;color:#888;">' + h.time + '</span>\n      <span style="font-size:14px;">' + h.answered + '/' + h.total + ' 题</span>\n      <span style="font-size:14px;font-weight:600;color:' + color + ';">' + h.correct + ' 对 / ' + h.wrong + ' 错</span>\n      <span style="font-size:18px;font-weight:700;color:' + color + ';">' + h.rate + '%</span>\n    </div>');
+    html += ('<div style="display:flex;align-items:center;justify-content:space-between;padding:10px 0;border-bottom:1px solid #eee;flex-wrap:wrap;gap:6px;">\n      <span style="font-size:13px;color:#888;">' + (h.time) + '</span>\n      <span style="font-size:14px;">' + (h.answered) + '/' + (h.total) + ' 题</span>\n      <span style="font-size:14px;font-weight:600;color:' + (color) + ';">' + (h.correct) + ' 对 / ' + (h.wrong) + ' 错</span>\n      <span style="font-size:18px;font-weight:700;color:' + (color) + ';">' + (h.rate) + '%</span>\n    </div>');
   });
   document.getElementById('historyContent').innerHTML = html;
 }
