@@ -318,9 +318,9 @@ var TOTAL = questions.length;
 
 // ========== State ==========
 var currentQ = 0;
-var userAnswers = new Array(TOTAL).fill(null);
-var submitted = new Array(TOTAL).fill(false);
-var results = new Array(TOTAL).fill(null);
+var userAnswers = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
+var submitted = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=false;return a;})();
+var results = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
 var navOpen = false;
 
 // ========== Helpers ==========
@@ -513,7 +513,7 @@ function submitAnswer() {
     correct = (userAns === q.answer);
   }
 
-  results[currentQ] = { correct, userAnswer: userAns, correctAnswer: q.answer };
+  results[currentQ] = { correct: correct, userAnswer: userAns, correctAnswer: q.answer };
   render();
 }
 
@@ -592,7 +592,7 @@ function showWrongList() {
   var wrongs = [];
   questions.forEach(function(q, i) {
     if (results[i] && !results[i].correct) {
-      wrongs.push({ index: i, q, r: results[i] });
+      wrongs.push({ index: i, q: q, r: results[i] });
     }
   });
 
@@ -622,9 +622,9 @@ function showWrongList() {
 
 // ========== Reset ==========
 function resetAll() {
-  userAnswers = new Array(TOTAL).fill(null);
-  submitted = new Array(TOTAL).fill(false);
-  results = new Array(TOTAL).fill(null);
+  userAnswers = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
+  submitted = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=false;return a;})();
+  results = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
   currentQ = 0;
   navOpen = false;
   document.getElementById('navPanel').classList.remove('open');
@@ -692,9 +692,9 @@ function clearHistory() {
 function saveAndReset() {
   saveHistory();
   if (!confirm('当前成绩已保存到历史记录，确定重新刷题？')) return;
-  userAnswers = new Array(TOTAL).fill(null);
-  submitted = new Array(TOTAL).fill(false);
-  results = new Array(TOTAL).fill(null);
+  userAnswers = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
+  submitted = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=false;return a;})();
+  results = (function(){var a=new Array(TOTAL);for(var i=0;i<TOTAL;i++)a[i]=null;return a;})();
   currentQ = 0;
   navOpen = false;
   document.getElementById('navPanel').classList.remove('open');
